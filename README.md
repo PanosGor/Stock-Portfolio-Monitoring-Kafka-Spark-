@@ -116,7 +116,7 @@ The NAV change is given by the following formula
 
 Similarly, to calculate the percentage change the application uses the last value of the list eval_list_n the calculation is based on the formula:
 
-**NAV_Change_%=((CurrentEvaluation- PreviousEvaluation))/( PreviousEvaluation)*100 **
+**NAV_Change_%=((CurrentEvaluation- PreviousEvaluation))/( PreviousEvaluation)x100**
 
 
 
