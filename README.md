@@ -118,6 +118,66 @@ Similarly, to calculate the percentage change the application uses the last valu
 
 **NAV_Change_%=((CurrentEvaluation- PreviousEvaluation))/( PreviousEvaluation)x100**
 
+The timestamp is also being calculated by using the datetime module in Python. 
+Ntime stores current timestamp by using datetime.now() . 
+The results are being stored as a string following the following format “YY-MM-DD HH:MM”.
+All the above calculations are being made for all the stocks that the consumer has seen in the 20 seconds interval. 
+After finishing all the calculations, it stores the results in 2 separate dictionaries called portfolio_eval_n one dictionary for each portfolio. 
+Each dictionary has the following format:
+
+-	‘PORTFOLIO’: Is a string with 2 numbers separated by a (.) the first number indicates the investor and the second one indicates he portfolio for example Investor 3 portfolio 2 = 3.2
+-	‘TIMESTAMP’: the calculated timestamp that was explained above
+-	‘NAV’: Current evaluation of the portfolio
+-	‘NAV_Change’: Difference for the previous evaluation
+-	‘NAV_Change_%’: Percentage difference from previous evaluation
+
+After that the application prints the results for the user to see and uses the results are shown in the screenshot below.
+
+*Figure 6 – Metrics of every Investor consumer*
+
+![image](https://user-images.githubusercontent.com/82097084/166109547-ef7bf7ed-b68b-42f0-81b5-f08f5762f4ea.png)
+
+The Kafka Producer sends the results to a specified Kafka topic in this case Kafka topic is ‘portfolios’. 
+The producer uses value serializer in order to dump the string to the topic in a json format.
+At the end the evaluation for each portfolio is set to 0 and the application sleeps for 20 seconds. 
+After that it will read the next 20 seconds interval from the consumer, and it will perform the same calculations again. 
+The same application can work for every investor by changing the investor variable at the beginning and the portfolios.
+
+## Part 3: An application that monitors the topic ‘portfolios’
+
+For the creation of the csv files app1 monitors Kafka topic Portfolios. 
+More specifically a kafka consumer was created. auto_offset_reset was set to ‘earliest’ for the consumer to read the data starting from the oldest available message, group_id = “my-group”. 
+A group_id name that hadn’t been used was chosen for the consumer even though it wouldn’t make any difference as there are no other consumers reading data from this Kafka topic. 
+After that the application prints the results for the user to see and uses the results are shown in the screenshot below.
+
+*Figure 7 -  Consumer of Portfolios*
+
+![image](https://user-images.githubusercontent.com/82097084/166109589-4eb94eb3-e3d0-4849-a13d-c89041e64ba1.png)
+
+The value deserializer uses a lambda function in order to load the strings received from the topic in a json format. 
+In order for that to be achieved loads function from json module is being used.
+
+The data received from the topic have the following format:
+-	‘PORTFOLIO’: Is a string with 2 numbers separated by a (.) the first number indicates the investor and the second one indicates he portfolio for example Investor 3 portfolio 2 = 3.2
+-	‘TIMESTAMP’: the calculated timestamp that was explained above
+-	‘NAV’: Current evaluation of the portfolio
+-	‘NAV_Change’: Difference for the previous evaluation
+-	‘NAV_Change_%’: Percentage difference from previous evaluation
+
+The value of the key PORTFOLIO is split to the (.) to separate the investor and the portfolio into two different variables named investor and portfolio. 
+By using os.path.isfile() function from the module os the application checks if the a file named after the given investor and portfolio exists in the local directory.
+If a file does not exist, then it creates a csv file named after the given investor and the given portfolio. 
+A csv writer() object will be created for the new csv file created (note that a new csv writer() will be created every time the consumer reads new data) the writer()
+append at the end of the file (In this case because the file is completely empty the end is the beginning) the header from column cols the header will have the same
+format as the json object meaning:
+
+-	‘PORTFOLIO’
+-	‘TIMESTAMP’
+-	‘NAV’
+-	‘NAV_Change’
+-	‘NAV_Change_%’
+
+
 
 
 
