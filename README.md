@@ -177,6 +177,32 @@ format as the json object meaning:
 -	‘NAV_Change’
 -	‘NAV_Change_%’
 
+After that the new data that the consumer read will be appended at the end of the csv file this process will be done every time for every unique combination of 
+Investors and portfolios meaning that there is no limit to how many combinations of Investors and portfolios we can have.
+If the file already exists in the directory the file will be opened without being replaced. Again a new writer() object will be created for the given csv file and the
+data will be appended at the end of the file. By doing this the application makes sure not to lose any information received from the consumer. 
+This is a dynamic way to create csv files for a non-specified number of Investors and Portfolios. Meaning that if there were 1000 Investor and each investor has 1000
+portfolios to evaluate 1 million csv files will be created for all possible combinations between Investors and portfolios with each csv file containing only information for its equivalent Investor_n_Portfolio_n. 
+The application will keep updating the csv files as long as it reads data from the Kafka topic
+
+Example screenshot of the produced csv file for Investor 1 Portfolio 2:
+
+*Figure 8 – csv layout*
+
+![image](https://user-images.githubusercontent.com/82097084/166109690-695a25a2-c929-447b-8fc3-2e2d5a78357a.png)
+
+## Part 4 – Spark Application
+
+A spark application was made that it reads all csv files in the directory that the above application creates and when it is run it asks for which investor and 
+portfolio we want information about and in what timeframe. 
+It uses spark SQL to query the csv files and fetch all the information about the specific portfolio we have and also gives us information about the average evaluation,
+standard deviation and highest spread of each portfolio in the same time frame.
+
+*Figure 9 – Metrics that the Spark app2 gives us*
+
+![image](https://user-images.githubusercontent.com/82097084/166109709-4bd69e03-a3e0-4221-a888-0293d6eb0ee3.png)
+
+
 
 
 
