@@ -72,3 +72,56 @@ Each server prints the data sent to the kafka topic on screen for the user to se
 *Figure 2 – Server 2 output*
 
 ![image](https://user-images.githubusercontent.com/82097084/166109179-529956bf-9d4b-4a2d-a41c-f8d293d4fda1.png)
+
+
+## Part 2: Evaluation of portfolios
+
+Consumers read from the Kafka topic continuously, but the goal was to make the consumer read from the Stock Exchange topic in 20 second intervals and do an evaluation of all portfolios of all investors.
+In order to make the consumer behave this way.poll() command was used which fetches data from the assigned topics/partitions in batches. 
+When poll() is called the consumer will use the last value’s timestamp that it consumed as a starting offset and will fetch information from that point on.  
+Next time.sleep() is used so that poll is called every 20 seconds.
+In the consumer configuration was set auto_offset_reset equal to earliest. 
+The way it works is that the first time each consumer runs it reads every message from the beginning of the topic firstly so that it will not lose the first message of the server that gives all the stocks.
+
+*Figure 4 – The way the consumer read the Kafka Topic*
+
+![image](https://user-images.githubusercontent.com/82097084/166109370-55c1a665-8b07-4919-9494-975ee7d09090.png)
+
+For every interval the consumer needs to evaluate his portfolios using only the most up to date price of the stock. 
+Since the poll() command brings all the values from the last time it got invoked a dictionary called Stock_per_interval was used. 
+The dictionary saves the latest price for each stock, as every new price for the same stock will overwrite the last price in the dictionary.
+If a new stock appears then automatically is being saved in the dictionary. 
+This is a very simple way to keep track of all the changes with regards to the stock prices.
+
+*Figure 5 – The last updated values*
+
+![image](https://user-images.githubusercontent.com/82097084/166109426-3b0972f4-1cc0-4e03-89e8-aaf0ada0cdd2.png)
+
+The Investor’s portfolios are saved in 2 separate dictionaries called P1 and P2. 
+These 2 portfolios have the number of stocks for each stock in the portfolio for example ‘FB’: 1000 indicates 1000 stocks for Facebook. 
+To evaluate the whole portfolio, the total sum of all the combinations of prices multiplied by the number of stocks in the portfolio needed to be calculated. 
+For example, if portfolio P has only 500 stocks for AAPL and 500 stocks for AMZN then the evaluation of the portfolio P will be 500 * FP_Price + 500 * AMZN_Price.
+To achieve this the application iterates through the keys of each portfolio and by using dictionary Stock_per_interval it looks for the same key (The keys of each portfolio are subsets of the keys for dictionary Stock_per_interval). 
+For each stock it calculates the NAV = Stock Price * Number of Stocks. 
+It adds this calculation to variable eval_n_sum (which is created at the top of the script and is equal to 0). 
+This eval_n_sum holds the current evaluation for the whole portfolio for each portfolio. 
+At the end of all calculations the eval_n_sum is set to 0 so that it will be 0 for the calculations of the next 20 seconds interval.
+In order to calculate the difference from the previous evaluation every time the application calculates the current portfolio evaluation it stores it to the list eval_list_n. 
+If the list is empty, it means that this is the first time that the application evaluates this portfolio. 
+Which means that the there is no previous value for the portfolio evaluation and the difference as well as the percentage change of the evaluation from the previous evaluation is 0. 
+If the list is not empty the in order to calculate the NAV_Difference it uses the last element of the list  eval_list_n which is basically the NAV value from the previous portfolio evaluation and stores to variable eval_diff_n. 
+The NAV change is given by the following formula
+
+**NAV_Change= CurrentEvaluation- PreviousEvaluation**
+
+Similarly, to calculate the percentage change the application uses the last value of the list eval_list_n the calculation is based on the formula:
+
+**NAV_Change_%=((CurrentEvaluation- PreviousEvaluation))/( PreviousEvaluation)*100**
+
+
+
+
+
+
+
+
